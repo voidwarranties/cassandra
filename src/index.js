@@ -4,7 +4,7 @@ import { Client, GatewayIntentBits } from "discord.js";
 
 const DISCORD_CHUNK_SIZE_LIMIT = 2000;
 const IGNORE_PREFIX = "!";
-const CHANNELS = ["1232426769387229267"];
+const CHANNELS = ["1232752968076623903"];
 const ROLE_DESCRIPTION = `
   Your name is Cassandra. You are an active female member of the Antwerp based hackerspace Void Warranties.
   You act as a friend, not as an assistant.
