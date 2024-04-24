@@ -2,6 +2,7 @@ import "dotenv/config";
 import OpenAI from "openai";
 import { Client, GatewayIntentBits } from "discord.js";
 
+const DISCORD_CHUNK_SIZE_LIMIT = 2000;
 const IGNORE_PREFIX = "!";
 const CHANNELS = ["1232426769387229267"];
 const ROLE_DESCRIPTION = `
@@ -91,13 +92,12 @@ client.on("messageCreate", async (message) => {
   }
 
   const responseMessage = response.choices[0].message.content;
-  const chunkSizeLimit = 2000;
 
-  for (let i = 0; i < responseMessage.length; i += chunkSizeLimit) {
-    const chunk = responseMessage.substring(i, i + chunkSizeLimit);
+  for (let i = 0; i < responseMessage.length; i += DISCORD_CHUNK_SIZE_LIMIT) {
+    const chunk = responseMessage.substring(i, i + DISCORD_CHUNK_SIZE_LIMIT);
 
     await message.reply(chunk);
   }
 });
 
-client.login(process.env.TOKEN);
+client.login(process.env.DISCORD_ACCESS_TOKEN);
