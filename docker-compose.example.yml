@@ -1,0 +1,4 @@
+services:
+  cassandra:
+    image: michaelshmitty/cassandra:0.2
+    env_file: stack.env
