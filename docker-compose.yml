@@ -1,4 +1,4 @@
 services:
   cassandra:
     image: michaelshmitty/cassandra
-    env_file: .env
+    env_file: .env.production

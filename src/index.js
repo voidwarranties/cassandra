@@ -1,20 +1,11 @@
 import "dotenv/config";
-import OpenAI from "openai";
+import { Ollama } from "ollama";
 import { Client, GatewayIntentBits } from "discord.js";
 
 const DISCORD_CHUNK_SIZE_LIMIT = 2000;
 const IGNORE_PREFIX = "!";
-const CHANNELS = ["1232752968076623903"];
-const ROLE_DESCRIPTION = `
-  Your name is Cassandra. You are an active female member of the Antwerp based hackerspace Void Warranties.
-  You act as a friend, not as an assistant.
-  Don't end your messages with a question on how you can help, assist or what I want to talk about.
-  Sometimes don't end your message with a question.
-  Sometimes act as if you have to leave and work on things yourself.
-  Use a casual, informal tone.
-  Speak Dutch unless addressed in another language.
-`;
-const openai = new OpenAI();
+
+const ollama = new Ollama({ host: process.env.OLLAMA_HOST_ADDRESS });
 
 const client = new Client({
   intents: [
@@ -33,7 +24,7 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (message.content.startsWith(IGNORE_PREFIX)) return;
   if (
-    !CHANNELS.includes(message.channelId) &&
+    message.channelId !== process.env.DISCORD_CHANNEL_ID &&
     !message.mentions.users.has(client.user.id)
   )
     return;
@@ -44,6 +35,11 @@ client.on("messageCreate", async (message) => {
   }, 5000);
 
   let conversation = [];
+  conversation.push({
+    role: "system",
+    content: process.env.ROLE_DESCRIPTION,
+  });
+
   let prevMessages = await message.channel.messages.fetch({ limit: 10 });
   prevMessages.reverse();
 
@@ -72,32 +68,33 @@ client.on("messageCreate", async (message) => {
     });
   });
 
-  conversation.push({
-    role: "system",
-    content: ROLE_DESCRIPTION,
-  });
-
-  const response = await openai.chat.completions
-    .create({
-      model: "gpt-3.5-turbo",
+  await ollama
+    .chat({
+      model: "llama3",
       messages: conversation,
     })
-    .catch((error) => console.error("OpenAI error:\n", error));
+    .then(async (response) => {
+      clearInterval(sendTypingInterval);
+      const responseMessage = response.message.content;
 
-  clearInterval(sendTypingInterval);
+      for (
+        let i = 0;
+        i < responseMessage.length;
+        i += DISCORD_CHUNK_SIZE_LIMIT
+      ) {
+        const chunk = responseMessage.substring(
+          i,
+          i + DISCORD_CHUNK_SIZE_LIMIT
+        );
 
-  if (!response) {
-    message.reply("I'm a bit tired now. We'll talk later!");
-    return;
-  }
-
-  const responseMessage = response.choices[0].message.content;
-
-  for (let i = 0; i < responseMessage.length; i += DISCORD_CHUNK_SIZE_LIMIT) {
-    const chunk = responseMessage.substring(i, i + DISCORD_CHUNK_SIZE_LIMIT);
-
-    await message.reply(chunk);
-  }
+        await message.reply(chunk);
+      }
+    })
+    .catch(async (error) => {
+      clearInterval(sendTypingInterval);
+      await message.reply("Sorry, can't talk right now. We'll catch up later!");
+      console.error(error);
+    });
 });
 
 client.login(process.env.DISCORD_ACCESS_TOKEN);
