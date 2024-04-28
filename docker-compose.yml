@@ -1,4 +1,5 @@
 services:
   cassandra:
     image: michaelshmitty/cassandra
+    restart: unless-stopped
     env_file: .env.production
