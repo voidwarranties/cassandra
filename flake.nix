@@ -24,15 +24,21 @@
         };
       in {
         formatter = pkgs.alejandra;
-        devShells = rec {
-          default = cassandra-devshell;
-          cassandra-devshell = pkgs.devshell.mkShell {
-            name = "Cassandra development environment";
-            packages = [
-              pkgs.nodePackages.prettier
-              pkgs.nodejs
-            ];
-          };
+        devShells.default = pkgs.devshell.mkShell {
+          name = "Cassandra devshell";
+          packages = [
+            pkgs.nodePackages.prettier
+            pkgs.nodejs
+          ];
+          commands = [
+            {
+              name = "deploy";
+              help = "Deploy Cassandra using Docker";
+              command = ''
+                docker-compose -H ssh://voidwarranties up -d
+              '';
+            }
+          ];
         };
       }
     );
