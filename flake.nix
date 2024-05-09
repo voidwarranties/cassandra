@@ -38,6 +38,13 @@
                 docker-compose -H ssh://voidwarranties up -d
               '';
             }
+            {
+              name = "logs";
+              help = "Tail Cassandra logs";
+              command = ''
+                docker-compose -H ssh://voidwarranties logs -f
+              '';
+            }
           ];
         };
       }
