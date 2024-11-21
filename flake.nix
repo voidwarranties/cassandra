@@ -2,7 +2,7 @@
   description = "Cassandra - Artificial life form";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     flake-utils.url = "github:numtide/flake-utils";
     devshell = {
       url = "github:numtide/devshell";
@@ -36,6 +36,13 @@
               help = "Deploy Cassandra using Docker";
               command = ''
                 docker-compose -H ssh://voidwarranties up -d
+              '';
+            }
+            {
+              name = "shutdown";
+              help = "Shut down Cassandra using Docker";
+              command = ''
+                docker-compose -H ssh://voidwarranties down
               '';
             }
             {
